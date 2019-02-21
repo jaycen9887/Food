@@ -1,0 +1,141 @@
+body {
+    overflow: hidden;
+    background-color: #F5F5F5;
+}
+
+.error{
+    border: 2px solid #D23947 !important;
+}
+
+.hidden{
+    display: none;
+}
+
+h1 {
+    margin: 0px 0px;
+    padding: 2vh 0px;
+}
+
+.float-left {
+    float: left;
+    color: #BFC4C6;
+}
+
+.active-topic {
+    position: relative;
+    top: 1px;
+    left: 1px;
+    cursor: pointer;
+    background-color: #c9c9c9;
+}
+
+#topic-count {
+    position: relative;
+    left: 1vw;
+}
+
+.title{
+    color: #BFC4C6;
+    font-weight: bolder;
+    text-align: center;
+    border-bottom: 2px solid black;
+    padding-bottom: 1vh;
+    background-color: #36474F;
+}
+
+#topics-list{
+    width: 25vw;
+    height: 97.5vh;
+    float: left;
+    background-color: #DDDDDD;
+}
+
+.topic{
+    margin: 0 2vw;
+    border-bottom: 1px solid;
+}
+
+.topic:hover{
+    position: relative;
+    top: 1px;
+    left: 1px;
+    cursor: pointer;
+    background-color: #c9c9c9;
+}
+
+.topic h4{
+    margin-bottom: 0px;
+    font-weight: lighter;
+}
+
+.topic h4:hover{
+    font-weight: bolder;
+}
+
+
+#topics-list #add-topic {
+    position: absolute;
+    bottom: 3vh;
+    left: 23vw;
+    background-color: #36474F;
+    color: white;
+    border: none;
+    padding-top: 1vh;
+    padding-bottom: 1vh;
+    border-radius: 15px;
+}
+
+
+
+#topics-expanded{
+    width: 73vw;
+    height: 97.5vh;
+    float: right;
+    background-color: #DDDDDD;
+}
+#topics-expanded #topic-event-creation {
+    margin: 1vh 1vw;
+}
+
+#topics-expanded #topic-event-creation input[type=text] {
+    width: 100%;
+    padding: 2vh 2vw;
+    margin: 8px 0;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#topics-expanded #topic-event-creation textarea {
+    width: 100%;
+    height: 20vh;
+    padding: 2vh 2vw;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    resize: none;
+}
+
+#topics-expanded #topic-event-creation select {
+    width: 100%;
+    padding: 2vh 2vw;
+    border-radius: 4px;
+    margin-bottom: 2vh;
+}
+
+#topics-expanded #topic-event-creation button[type="submit"] {
+    float: right;
+    background-color: #a0c2dd;
+    border: none;
+    color: #5f6f7f;
+    padding: 2vh 2vw;
+    text-decoration: none;
+    margin: 1vh 1vw;
+    cursor: pointer;
+}
+
+#topics-expanded #topic-event-creation button[type="submit"]:disabled{
+    background-color: #999;
+    color: black;
+}
