@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Customer</title> 
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+        <link rel="stylesheet" href="./css/main.css" />
+    </head>
+    <body id="consumer">
+        <div id="topics-expanded">
+            <h1 class="title">Menu</h1>
+    
+            <div id="topic-event-creation">
+                <div class="apps">
+                    <h1 class="topic-title">Appetizers</h1>
+                    <div id="apps-list"></div>
+                </div>
+                <div class="lunch">
+                    <h1 class="topic-title">Lunch</h1>
+                    <div id="lunch-list"></div>
+                    </div>
+                <div class="dinner">
+                    <h1 class="topic-title">Dinner</h1>
+                    <div id="dinner-list"></div>
+                </div>
+                <div class="sides">
+                    <h1 class="topic-title">Sides</h1>
+                    <div id="sides-list"></div>
+                </div>
+                <div class="drinks">
+                    <h1 class="topic-title">Drinks</h1>
+                    <div id="drinks-list"></div>
+                </div>
+
+                <button id="order-submit">Review Order</button>
+                    
+            </div>    
+        </div>
+        <script src="./js/ejs.min.js"></script>
+        <script>
+            let itemPlacement = "";
+            let menuItems = '<%= menuItems%>'.split(',');
+            let menuPrice = 0;
+            let itemToSkip = 0;
+            let quantityIndex = 0;
+            if(menuItems.length != 0){
+                console.log(menuItems);
+                menuItems.forEach((item, index) => {
+                    //console.log(item);
+                    if(item == "Appetizers"){
+                        itemPlacement = "apps-list";
+                    } else if(item == "Dinner"){
+                        itemPlacement = "dinner-list";
+                    } else if(item == "Lunch"){
+                        itemPlacement = "lunch-list";
+                    } else if(item == "Sides"){
+                        itemPlacement = "sides-list";
+                    } else if(item == "Drinks"){
+                        itemPlacement = "drinks-list";
+                    } else {
+                        if(index == itemToSkip){
+                            return;
+                        } else if(item.includes("Quantity")) {
+                            return;
+                        } else {
+                            let el = document.getElementById(itemPlacement);
+                            let p = document.createElement("p");
+                            let span = document.createElement('span');
+                            //let quantity = menuItems[index + 2].substring((menuItems[index + 2].length - 2), menuItems[index + 2].length);
+                            let quantity = menuItems[index + 2].split(" ").pop();
+                            let input = document.createElement('input');
+                            let quantSpan = document.createElement('span');
+                            input.id = item;
+                            input.name = menuItems[index + 1];
+                            input.className = "order-quantity";
+                            input.type = "number";
+                            input.min = 0;
+                            input.max = quantity;
+
+                            //console.log(quantity);
+                            span.className = "menu-price";
+                            quantSpan.className = "quantity";
+                            quantSpan.innerText = "(Quantity: " + quantity + " available)";
+                            p.className = "menu-item";
+                            p.innerText = item;
+                            p.appendChild(quantSpan);
+                            span.innerText = menuItems[index + 1];
+                            itemToSkip = index + 1;
+
+                            p.appendChild(span);
+                            el.appendChild(input);
+                            el.appendChild(p);
+                        }
+                    }
+                });
+                
+            }            
+        </script>
+        <script src="./js/main.js"></script>
+    </body>
+</html>

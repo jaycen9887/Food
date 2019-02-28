@@ -1,5 +1,5 @@
 body {
-    overflow: hidden;
+   /*  overflow: hidden; */
     background-color: #F5F5F5;
 }
 
@@ -16,24 +16,6 @@ h1 {
     padding: 2vh 0px;
 }
 
-.float-left {
-    float: left;
-    color: #BFC4C6;
-}
-
-.active-topic {
-    position: relative;
-    top: 1px;
-    left: 1px;
-    cursor: pointer;
-    background-color: #c9c9c9;
-}
-
-#topic-count {
-    position: relative;
-    left: 1vw;
-}
-
 .title{
     color: #BFC4C6;
     font-weight: bolder;
@@ -43,58 +25,17 @@ h1 {
     background-color: #36474F;
 }
 
-#topics-list{
-    width: 25vw;
-    height: 97.5vh;
-    float: left;
-    background-color: #DDDDDD;
-}
-
-.topic{
-    margin: 0 2vw;
-    border-bottom: 1px solid;
-}
-
-.topic:hover{
-    position: relative;
-    top: 1px;
-    left: 1px;
-    cursor: pointer;
-    background-color: #c9c9c9;
-}
-
-.topic h4{
-    margin-bottom: 0px;
-    font-weight: lighter;
-}
-
-.topic h4:hover{
-    font-weight: bolder;
-}
-
-
-#topics-list #add-topic {
-    position: absolute;
-    bottom: 3vh;
-    left: 23vw;
-    background-color: #36474F;
-    color: white;
-    border: none;
-    padding-top: 1vh;
-    padding-bottom: 1vh;
-    border-radius: 15px;
-}
-
-
 
 #topics-expanded{
-    width: 73vw;
-    height: 97.5vh;
-    float: right;
+    width: 99vw;
+    /* height: 97.5vh; */
+    height: 100%;
     background-color: #DDDDDD;
 }
 #topics-expanded #topic-event-creation {
-    margin: 1vh 1vw;
+    /*  margin: 1vh 1vw;*/
+    width: 85vw;
+    margin: auto;
 }
 
 #topics-expanded #topic-event-creation input[type=text] {
@@ -135,7 +76,47 @@ h1 {
     cursor: pointer;
 }
 
-#topics-expanded #topic-event-creation button[type="submit"]:disabled{
-    background-color: #999;
-    color: black;
+#topics-expanded #topic-event-creation #order-submit{
+    background-color: transparent;
+    border: 2px solid;
+    border-radius: 5px;
+    font-size: 1.5rem;
+    padding: 1rem;
+    position: relative;
+    left: 85%;
+    cursor: pointer;
+    font-weight: bolder;
+}
+
+#topics-expanded #topic-event-creation .topic-title{
+    color: #36474F;
+    font-weight: bolder;
+    text-align: center;
+    border-bottom: 2px solid black;
+    padding-bottom: 1vh;
+    background-color: #BFC4C6;
+}
+
+#topics-expanded #topic-event-creation .order-quantity{
+    width: 2vw;
+    height: 4vh;
+    float: left;
+    margin-right: 1vw;
+    margin-top: 1vh;
+}
+
+#topics-expanded #topic-event-creation .menu-item{
+    color: #36474F;
+    font-weight: bolder;
+    font-size: 2rem;
+}
+
+#topics-expanded #topic-event-creation .quantity{
+    font-weight: lighter;
+    font-size: 1rem;
+    margin-left: 1vw;
+}
+
+#topics-expanded #topic-event-creation .menu-price{
+    float: right;
 }
