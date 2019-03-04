@@ -10,14 +10,42 @@
             <h1>Order Submitted</h1>
         </div>
 
+        <table id="order">
+            <tr>
+                <th>Amount</th>
+                <th>Item</th>
+            </tr>
+        </table>
+
+        <div>
+            <h3>Subtotal: <span id="subtotal"></span></h3>
+            <h3>Total: <span id="total"></span></h3>
+        </div>
+
         
         <script src="./js/ejs.min.js"></script>
         <script> 
-            let order = '<%= order %>';
-            /*order.forEach((item, index) => {
-                console.log(item);
-            });*/
-            console.log("ORDER: ", typeof order);
+            let orderSubmitted = '<%= order %>'.split(',');
+            //console.log(orderSubmitted);
+            let orderTr = document.getElementById('order');
+            let subTotal = document.getElementById('subtotal').innerText = orderSubmitted[2];
+            let total = document.getElementById('total').innerText = orderSubmitted[3];
+            if(orderSubmitted.length > 0) {
+                orderSubmitted.forEach((item, index) => {
+
+                    if(index % 4 == 0){
+                    let newTr = document.createElement('tr')
+                    let amountTd = document.createElement('td');
+                    amountTd.innerText = item;
+                    let itemTd = document.createElement('td');
+                    itemTd.innerText = orderSubmitted[index + 1];
+                    console.log(item);
+                    newTr.appendChild(amountTd);
+                    newTr.appendChild(itemTd);
+                    orderTr.appendChild(newTr);
+                    }
+                });
+            }
         </script>
         <script src="./js/main.js"></script>
     </body>

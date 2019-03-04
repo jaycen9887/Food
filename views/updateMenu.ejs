@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Update Menu</title> 
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+        <link rel="stylesheet" href="../css/main.css" />
+    </head>
+    <body id="updateMenu">
+        <h1 class="title">Update Menu</h1>        
+        <div id="topic-event-creation">
+            <div class="apps">
+                <h1 class="topic-title">Appetizers <span class="add-button" title="add menu item"><i class="fas fa-plus"></i></span></h1>
+                <!-- <h4 class="categories"><span id="item-cat">Item</span><span id="price-cat">Price</span><span id="quant-cat">Quantity</span></h4> -->
+                <table id="apps-list">
+                    <tr>
+                        <th>Item</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                    </tr>
+                </table>
+                <!-- <div id="apps-list"></div> -->
+            </div>
+            <div class="lunch">
+                <h1 class="topic-title">Lunch <span class="add-button" title="add menu item"><i class="fas fa-plus"></i></span></h1>
+                <table id="lunch-list">
+                </table>
+                <!-- <div id="lunch-list"></div> -->
+                </div>
+            <div class="dinner">
+                <h1 class="topic-title">Dinner <span class="add-button" title="add menu item"><i class="fas fa-plus"></i></span></h1>
+                <table id="dinner-list">
+                </table>
+                <!-- <div id="dinner-list"></div> -->
+            </div>
+            <div class="sides">
+                <h1 class="topic-title">Sides <span class="add-button" title="add menu item"><i class="fas fa-plus"></i></span></h1>
+                <table id="sides-list">
+                </table>
+                <!-- <div id="sides-list"></div> -->
+            </div>
+            <div class="drinks">
+                <h1 class="topic-title">Drinks <span class="add-button" title="add menu item"><i class="fas fa-plus"></i></span></h1>
+                <table id="drinks-list">
+                </table>
+                <!-- <div id="drinks-list"></div> -->
+            </div>
+            <button id="save-menu">Save Menu</button>
+        </div>
+        <script>
+            if('<%= menuItems %>' !== "") {
+                let itemPlacement = "";
+                let type = "";
+                let menuItems = '<%= menuItems%>'.split(',');
+                let menuPrice = 0;
+                let itemToSkip = 0;
+                let quantityIndex = 0;
+                if(menuItems.length != 0){
+                    //console.log(menuItems);
+                    menuItems.forEach((item, index) => {
+                        //console.log(item);
+                        if(item == "Appetizers"){
+                            itemPlacement = "apps-list";
+                            type = "Appetizers";
+                        } else if(item == "Dinner"){
+                            itemPlacement = "dinner-list";
+                            type = "Dinner";
+                        } else if(item == "Lunch"){
+                            itemPlacement = "lunch-list";
+                            type = "Lunch";
+                        } else if(item == "Sides"){
+                            itemPlacement = "sides-list";
+                            type = "Sides";
+                        } else if(item == "Drinks"){
+                            itemPlacement = "drinks-list";
+                            type = "Drinks";
+                        } else {
+                            if(index == itemToSkip){
+                                return;
+                            } else if(item.includes("Quantity")) {
+                                return;
+                            } else {
+                                let el = document.getElementById(itemPlacement);
+
+                                let quantity = menuItems[index + 2].split(" ").pop();
+                                let price = menuItems[index + 1];
+
+                                let itemInput = document.createElement('input');
+                                let priceInput = document.createElement('input');
+                                let quantInput = document.createElement('input');
+                            
+                                let tr = document.createElement('tr');
+
+                                let itemtd = document.createElement('td');
+                                let pricetd = document.createElement('td');
+                                let quanttd = document.createElement('td');
+                                
+                                itemInput.id = item;
+                                itemInput.type = "text";
+                                itemInput.value = item;
+                                itemInput.alt = type;
+
+                                priceInput.id = price;
+                                priceInput.type = "text";
+                                priceInput.value = price;
+
+                                quantInput.id = quantity;
+                                quantInput.type = "text";
+                                quantInput.value = quantity;
+
+                                itemToSkip = index + 1;
+
+                                itemtd.appendChild(itemInput);
+                                pricetd.appendChild(priceInput);
+                                quanttd.appendChild(quantInput);
+                                tr.appendChild(itemtd);
+                                tr.appendChild(pricetd);
+                                tr.appendChild(quanttd);
+                                el.appendChild(tr);
+                                /* el.appendChild(br); */
+                            }
+                        }
+                    });
+                    
+                } 
+            } 
+            
+        </script>
+        <script src="../js/main.js"></script>
+    </body>
+</html>

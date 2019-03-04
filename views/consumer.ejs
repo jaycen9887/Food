@@ -8,7 +8,12 @@
     <body id="consumer">
         <div id="topics-expanded">
             <h1 class="title">Menu</h1>
-    
+            <% if (typeof message !== 'undefined') {%>
+                <h3 class="success-message"><%= message %></h3>
+            <% } %>
+            <% if (typeof error !== 'undefined') {%>
+                <h3 class="error-message"><%= error %></h3>
+            <% } %>
             <div id="topic-event-creation">
                 <div class="apps">
                     <h1 class="topic-title">Appetizers</h1>
@@ -43,7 +48,7 @@
             let itemToSkip = 0;
             let quantityIndex = 0;
             if(menuItems.length != 0){
-                console.log(menuItems);
+                //console.log(menuItems);
                 menuItems.forEach((item, index) => {
                     //console.log(item);
                     if(item == "Appetizers"){
@@ -75,6 +80,7 @@
                             input.type = "number";
                             input.min = 0;
                             input.max = quantity;
+                            input.alt = itemPlacement;
 
                             //console.log(quantity);
                             span.className = "menu-price";

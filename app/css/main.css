@@ -7,6 +7,16 @@ body {
     border: 2px solid #D23947 !important;
 }
 
+.success-message {
+    color: #0fe419;
+    font-weight: bolder;
+}
+
+.error-message {
+    color: #D23947;
+    font-weight: bolder;
+}
+
 .hidden{
     display: none;
 }
@@ -119,4 +129,100 @@ h1 {
 
 #topics-expanded #topic-event-creation .menu-price{
     float: right;
+}
+
+/* Update Menu */
+
+#updateMenu .topic-title {
+    color: #36474F;
+    font-weight: bolder;
+    text-align: center;
+    border-bottom: 2px solid black;
+    padding-bottom: 1vh;
+    background-color: #BFC4C6;
+}
+
+#updateMenu input {
+    /* width: 30vw; */
+    width: 100%;
+    padding: 2vh 2vw;
+    margin: 1vh 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+} 
+
+#updateMenu #topic-event-creation #apps-list,
+#updateMenu #topic-event-creation #dinner-list,
+#updateMenu #topic-event-creation #lunch-list,
+#updateMenu #topic-event-creation #sides-list,
+#updateMenu #topic-event-creation #drinks-list{
+    width: 95%;
+    margin: auto;
+}
+
+#updateMenu #topic-event-creation #save-menu{
+    padding: 2vh 4vw;
+    background-color: transparent;
+    border: 2px solid;
+    border-radius: 4px;
+    cursor: pointer;
+    float: right;
+    margin-right: 4vw;
+}
+
+
+#updateMenu #topic-event-creation #save-menu:hover{
+    padding: 2vh 4vw;
+    background-color: #777;
+    color: #CCC;
+    border: 2px solid;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#updateMenu #topic-event-creation .add-button{
+    float: right;
+    margin-right: 2vw;
+    cursor: pointer;
+}
+
+/* Review Order */
+#review #review-order {
+    width: 50vw;
+    margin: auto;
+    text-align: center;
+}
+
+#review .totals h3:first-of-type{
+    float:left;
+}
+
+#review .totals h3:nth-of-type(2){
+    float: right;
+}
+
+
+#review #review-order input {
+    max-width: 2vw;
+    text-align: center;
+    font-size: 16px;   
+}
+
+#review #review-order td{
+    font-weight: bolder;
+    font-size: 21px;
+    width: 10%;
+}
+
+#review #review-order td:first-of-type{
+    width: 15%;
+}
+
+
+#review #review-order td:nth-of-type(2){
+    text-align: left;
+    width: 15%;
 }

@@ -1,11 +1,6 @@
 module.exports = {
-    groupId: 'Menu-Group',
+    groupId: 'Order-Group',
     autoCommit: true,
-    autoCommitIntervalMs: 5000,
-    fetchMaxWaitMs: 100,
-    fetchMinBytes: 1,
-    fetchMaxBytes: 1024 * 1024,
-    fromOffset: "latest",
     encoding: 'utf8',
     keyEncoding: 'utf8'
 }

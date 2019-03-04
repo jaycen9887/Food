@@ -3,18 +3,85 @@
     <head>
         <title>Review Order</title> 
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-        <link rel="stylesheet" href="./css/main.css" />
+        <link rel="stylesheet" href="../css/main.css" />
     </head>
-    <body onload="init()" id="review">
+    <body id="review">
         <div id="order-submitted">
-            <h1>Review Order</h1>
+            <h1 class='title'>Review Order</h1>
         </div>
 
-        <form id="review-order" action="/ordersubmit" method="POST">
+        <!-- <form id="review-form" action="/ordersubmit" method="POST"> -->
+        <div id="review-form">
+            <table id="review-order">
+                <tr>
+                    <th>Ordering</th>
+                    <th>Item</th>
+                    <th>Price</th>
+                </tr>
+            </table>
+        </div>
+            <button id='order-submit'>Submit Order</button>
+        <!-- </form> -->
 
-        </form>
+        <script src="./js/ejs.min.js"></script>
+        <script> 
+            let orderToReview = '<%= order %>'.split(',');
+            let reviewTable = document.getElementById('review-order');
+            let reviewForm = document.getElementById('review-form');
+            let subtotal = 0;
+            let total = 0;
 
-        
-        <script src="./js/main.js"></script>
+            //for each item in orderToReview
+            if(orderToReview.length > 0) {
+                orderToReview.forEach((item, index) => {
+                    
+                    if(index % 6 == 0){
+                        let input = document.createElement('input');
+                        let orderTd = document.createElement('td');
+                        let itemTd = document.createElement('td');
+                        let priceTd = document.createElement('td');
+                        let itemTr = document.createElement('tr');
+
+                        input.type = 'number';
+                        input.id = orderToReview[index + 1];
+                        input.name = orderToReview[index + 4];
+                        input.min = orderToReview[index + 3];
+                        input.max = orderToReview[index + 2];
+                        input.value = item;
+                        input.alt = orderToReview[index + 5]
+
+                        orderTd.appendChild(input);
+                        subtotal += parseFloat(input.name) * parseFloat(item);
+
+                        itemTd.append(input.id);
+                        priceTd.append(input.name);
+
+                        itemTr.appendChild(orderTd);
+                        itemTr.appendChild(itemTd);
+                        itemTr.appendChild(priceTd);
+                        reviewTable.appendChild(itemTr);
+                    }
+                });
+
+                let totalsDiv = document.createElement('div');
+                let subTotalHeader = document.createElement('h3');
+                let totalHeader = document.createElement('h3');
+
+                totalsDiv.id = "totals";
+
+                subTotalHeader.innerHTML = "Subtotal: $<span id='subtotal'>" + subtotal.toFixed(2) +"</span>";
+                totalHeader.innerHTML = "Total (subtotal + tax): $<span id='total'>" + (subtotal +  (subtotal * .07)).toFixed(2) + "</span>";
+
+                totalsDiv.appendChild(subTotalHeader);
+                totalsDiv.appendChild(totalHeader);
+                reviewForm.appendChild(totalsDiv);
+
+                /*let submitButton = document.createElement('input');
+                submitButton.type = 'submit';
+                submitButton.innerText = "Submit Order";
+                reviewForm.appendChild(submitButton);*/
+            }
+        </script>
+        <script src="../js/main.js"></script>
     </body>
 </html>
