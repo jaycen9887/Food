@@ -158,7 +158,7 @@ chefConsumer.on('message', (message) => {
 
 let order;
 
-module.exports = (app, jsonParser, urlencodedParser) => {
+module.exports = (app) => {
     
     app.get('/', (req, res) => {
 

@@ -22,6 +22,6 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname + "/app"));
 app.set('view engine', 'ejs');
 
-require('./routes/routes.js')(app, jsonParser, urlencodedParser);
+require('./routes/routes.js')(app);
 
 app.listen(port, () => console.log("App listening on port: " + port));
