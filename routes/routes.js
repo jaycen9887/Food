@@ -1,26 +1,29 @@
 const kafka = require('kafka-node');
 
 const kafkaConfig = require('../config/kafka');
-const ProducerStream = require('../config/producerStream');
-/* const ConsumerGroupStream = require('../config/consumerGroupStream');
-const resultProducer = new ProducerStream(); */
-
-const menuConsumerConfig = require('../config/menuConsumer');
-const chefConsumerConfig = require('../config/orderConsumer');
+//const chefConsumerConfig = require('../config/orderConsumer');
 
 //create client
 const client = new kafka.KafkaClient(kafkaConfig);
-/* let offset = new kafka.Offset(client); */
+const chefClient = new kafka.KafkaClient(kafkaConfig);
 //Producer
 const Producer = kafka.Producer;
 const producer = new Producer(client);
+const chefProducer = new Producer(chefClient);
 const admin = new kafka.Admin(client);
 
 //Consumer
-const consumerPayload  = {
-    topic: 'Menu',
-    offset: 0,
-    partition: 0
+
+const consumerOptions = {
+    groupId: 'Menu-Group',
+    autoCommit: true,
+    encoding: 'utf8',
+}
+
+const chefOptions = {
+    groupId: 'Order-Group',
+    autoCommit: true,
+    encoding: 'utf-8'
 }
 
 const chefPayload = {
@@ -28,11 +31,49 @@ const chefPayload = {
     partition: 0
 }
 const Consumer = kafka.Consumer;
-const consumer = new Consumer(client, [consumerPayload], menuConsumerConfig);
-const chefConsumer = new Consumer(client, [chefPayload], chefConsumerConfig);
-/* const consumerGroup = new ConsumerGroupStream(menuConsumerConfig, "Menu");
-const Transform = require('stream').Transform; */
+let consumer = new Consumer(client, [{topic: 'Menu'}], consumerOptions);
+const chefConsumer = new Consumer(chefClient, [{topic: 'Order'}], chefOptions);
+const offset = new kafka.Offset(client);
 
+/* const consumerInit = () => {
+    
+    offset.fetchLatestOffsets(['Menu'], (err, offsets) => {
+        if(err){
+            console.log(err);
+        }
+        console.log(offsets['Menu'][0]);
+        let consumerPayload = {
+            topic: 'Menu',
+            offset: (offsets['Menu'][0]),
+            partition: 0
+        }
+
+        consumer = new Consumer(client, [consumerPayload], consumerOptions);
+
+        //console.log(consumer);
+
+        consumer.connect();
+
+        consumer.on('error', (err) => {
+            console.log("Consumer Error: " + err);
+        });
+
+        //consumer listens for messages
+        messageValues = [];
+        let tempMessageValues = [];
+        consumer.on('message', (message) => {
+            //console.log("Menu: ", message)
+            tempMessageValues.push(message.value);
+            //refresh page
+            messageValues = tempMessageValues;
+        });
+
+
+
+    });
+
+
+} */ 
 
 //Create a payload to send to topic
 const menuPayLoad = [
@@ -48,41 +89,29 @@ let orderValues = [];
 
 let error = false;
 let confirmMessage = "";
-let wait = true;
 
 let updateMenu = (payload, producerCB) => {
-    //error = false;
     confirmMessage = "";
-    //wait = true;
-    //let newMessageValues = [];
-    messageValues = [];
-
-    //console.log("Getting Ready to produce!!");
 
     producer.send(payload, producerCB);
 
-    //console.log("Getting ready to consume");
-
-    //consumer.on('message', (message) => {
-      //  wait = false;
-       // messageValues.push(message.value);
-   // });
-
+   // consumerInit();
    
 }
 
-//connect producer
 producer.connect();
+chefProducer.connect();
 
-//connect consumer
-consumer.connect();
-chefConsumer.connect();
+//chefConsumer.connect();
 
 //listen for errors - producer
 producer.on('error', (err) => {
     console.log("Producer Error: " + err);
 });
 
+/* chefProducer.on('ready', () => {
+
+}); */
 //When producer is ready send payload to topic
 producer.on('ready', () => {
     //list topics
@@ -105,39 +134,31 @@ producer.on('ready', () => {
         });
     }
 
+    //consumerInit();
     producer.send(menuPayLoad, (err, data) => {
         if(err){
             console.log(err);
         }
     });
 
-    consumer.on('error', (err) => {
-        console.log("Consumer Error: " + err);
-    });
-
     chefConsumer.on('error', (err) => {
         console.log('Chef Consumer Error: ', err);
     });
+}); 
 
-    //consumer listens for messages
-    consumer.on('message', (message) => {
-        //console.log("Menu: ", message)
-        messageValues.push(message.value);
-        //refresh page
-    });
+consumer.on('message', (message) => {
+    //console.log(message.value);
+    messageValues.push(message.value);
+});
 
-    chefConsumer.on('message', (message) => {
-        orderValues.push("Order", message);
-        //console.log(message);
-    });
-
-
-
-});   
+chefConsumer.on('message', (message) => {
+    orderValues.push(message.value);
+    console.log(message.value);
+});
 
 let order;
 
-module.exports = (app) => {
+module.exports = (app, jsonParser, urlencodedParser) => {
     
     app.get('/', (req, res) => {
 
@@ -173,23 +194,16 @@ module.exports = (app) => {
 
         updateMenu(newMenuPayLoad, (err, data) => {
             if(err){
-                error = true;
-                wait = false;
                 confirmMessage = "Error updating Menu: " + error;
             } else {
-                error = false;
-                wait = false;
                 confirmMessage = "Menu Successfully Updated";
             }
         });
         
         if(error){
-           
             res.render('consumer', {menuItems: messageValues, error: confirmMessage});
-            //res.redirect('/admin/updateMenu?newMenu='+newMessageValues + "&message=" + message);
         } else {
-           
-            //res.render('consumer', {menuItems: mv, message: message});
+            
             res.redirect("/");
         }
         
@@ -221,12 +235,15 @@ module.exports = (app) => {
             }
         });
 
-        producer.send(newOrder, (err, data) => {
+        chefProducer.send(newOrder, (err, data) => {
             if(err){
                 console.log(err);
             }
+
+            //console.log(data);
         });
-        console.log(orderValues);
+
+        //console.log(orderValues);
         res.render('orderSubmit', {order: order});
     });
 }

@@ -18,8 +18,6 @@ MongoClient.connect(configDB.url, { useNewUrlParser: true } ,() => {
 app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
-const jsonParser = bodyParser.json();
-const urlencodedParser = bodyParser.urlencoded({extended: false});
 
 app.use(express.static(__dirname + "/app"));
 app.set('view engine', 'ejs');

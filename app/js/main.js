@@ -1,6 +1,15 @@
 let order = [];
+let update = false;
 
 if(document.getElementById('consumer') != null){
+    update = false;
+    
+    setTimeout(() => {
+        if(update){
+            window.location = "/";
+        }
+    }, 3000);
+
     let reviewButton = document.getElementById('order-submit');
     
     //on button press
@@ -79,6 +88,7 @@ if(document.getElementById('review') != null){
                 order.push([inputs[i].value, inputs[i].id, orderSubtotal, orderTotal]);
             }
         }
+        update = true;
         window.location.href = '/ordersubmit?order=' + order + "&menu=" + menu;
     };
 }
