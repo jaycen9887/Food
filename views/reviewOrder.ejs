@@ -81,6 +81,30 @@
                 submitButton.innerText = "Submit Order";
                 reviewForm.appendChild(submitButton);*/
             }
+
+            
+            
+            let inputs = document.getElementsByTagName('input');
+            
+            const updateTotals = () => {
+                let newSubTotal = 0;
+                let newTotal = 0;
+                for(let i = 0; i < inputs.length; i++){
+                    let value = inputs[i].value;
+                    let price = inputs[i].name;
+                    newSubTotal += price * value;
+                    newTotal = newSubTotal + (newSubTotal * .07);
+                    document.getElementById("subtotal").innerText = newSubTotal.toFixed(2);
+                    document.getElementById("total").innerText= newTotal.toFixed(2);
+                }
+            }
+
+            window.onload = () => {               
+                console.log(inputs);
+                for(let i = 0; i < inputs.length; i++){
+                    inputs[i].addEventListener("change", updateTotals);
+                }                
+            }
         </script>
         <script src="../js/main.js"></script>
     </body>

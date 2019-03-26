@@ -137,3 +137,54 @@ if(document.getElementById('updateMenu') != null){
         window.location.href = '/menusubmit?newMenu=' + newMenu;
     }
 }
+
+if(document.getElementById('chefs')){
+    //grab all order-container divs
+    let orders = document.getElementsByClassName('order-container');
+    let selected;
+
+    document.onkeydown = (e) => {
+        
+        if(e.keyCode == 38){
+            // if up key is pressed
+            for(let i = 0; i < orders.length; i++){
+                if(orders[i].classList.contains("selected") && i != 0){
+                    //remove 'selected' class from current 
+                    orders[i].classList.remove('selected');
+                    //give the element above this current one the class 'selected'
+                    orders[i - 1].classList.add('selected');
+                }
+            }
+
+        } else if(e.keyCode == 40){
+            //if down key is pressed
+            for(let j = 0; j < orders.length; j++){
+                if(orders[j].classList.contains('selected') && j != (orders.length - 1)){
+                     //remove 'selected' class from current 
+                     orders[j].classList.remove('selected');
+                     //give the element belo this current one the class 'selected'
+                     orders[j + 1].classList.add('selected');
+                }
+            }
+        } else if(e.keyCode == 13){
+            //if enter key is pressed
+            console.log(orders);
+            for(let i = 0; i < orders.length; i++){
+                //if item is selected
+                if(orders[i].classList.contains('selected')){
+                    //remove element
+                    orders[i].parentNode.removeChild(orders[i]);
+                    //grab information and push to newOrders array to post
+                    let newOrders=[];
+                    /* let xhr = new XMLHttpRequest();
+                    xhr.open("POST", "/updateOrders", true);
+                    xhr.setRequestHeader('Content-Type', "application/json");
+                    xhr.send(JSON.stringify({orders: newOrders})); */
+                    if(orders.length > 0){
+                        orders[i].classList.add('selected');
+                    } 
+                }
+            }
+        }
+    }
+}

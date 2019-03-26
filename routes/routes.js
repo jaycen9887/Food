@@ -1,166 +1,237 @@
 const kafka = require('kafka-node');
+const { KafkaStreams } = require('kafka-streams');
 
+//set up Menu stream
+const menuStreamsConfig = require('../config/menuStreamConfig.js');
+const menuStreams = new KafkaStreams(menuStreamsConfig);
+const menuStream = menuStreams.getKStream("Menu");
+
+//set up Order Stream
+const orderStreamsConfig = require('../config/orderStreamConfig.js');
+const orderStreams = new KafkaStreams(orderStreamsConfig);
+const orderStream = orderStreams.getKStream('Orders');
+
+//pull kafka configuration file
 const kafkaConfig = require('../config/kafka');
-//const chefConsumerConfig = require('../config/orderConsumer');
 
-//create client
-const client = new kafka.KafkaClient(kafkaConfig);
-const chefClient = new kafka.KafkaClient(kafkaConfig);
-//Producer
+//create menu client
+const menuClient = new kafka.KafkaClient(kafkaConfig);
+const orderClient = new kafka.KafkaClient(kafkaConfig);
+
+//Producers
 const Producer = kafka.Producer;
-const producer = new Producer(client);
-const chefProducer = new Producer(chefClient);
-const admin = new kafka.Admin(client);
+const menuProducer = new Producer(menuClient);
+const orderProducer = new Producer(orderClient);
 
-//Consumer
-
-const consumerOptions = {
-    groupId: 'Menu-Group',
-    autoCommit: true,
-    encoding: 'utf8',
-}
-
-const chefOptions = {
-    groupId: 'Order-Group',
-    autoCommit: true,
-    encoding: 'utf-8'
-}
-
-const chefPayload = {
-    topic: 'Order',
-    partition: 0
-}
+//Consumers
+const menuConsumerOptions = require('../config/menuConsumerOptions.js');
+const orderConsumerOptions = require('../config/orderConsumerOptions');
 const Consumer = kafka.Consumer;
-let consumer = new Consumer(client, [{topic: 'Menu'}], consumerOptions);
-const chefConsumer = new Consumer(chefClient, [{topic: 'Order'}], chefOptions);
-const offset = new kafka.Offset(client);
+let menuConsumer = new Consumer(menuClient, [{topic: 'Menu'}], menuConsumerOptions);
+const orderConsumer = new Consumer(orderClient, [{topic: 'Order'}], orderConsumerOptions);
+//const offset = new kafka.Offset(client);
 
-/* const consumerInit = () => {
-    
-    offset.fetchLatestOffsets(['Menu'], (err, offsets) => {
-        if(err){
-            console.log(err);
-        }
-        console.log(offsets['Menu'][0]);
-        let consumerPayload = {
-            topic: 'Menu',
-            offset: (offsets['Menu'][0]),
-            partition: 0
-        }
+//Payloads
+const orderPayload = require('../config/orderPayload');
+const menuPayLoad = require('../config/menuPayload');
 
-        consumer = new Consumer(client, [consumerPayload], consumerOptions);
-
-        //console.log(consumer);
-
-        consumer.connect();
-
-        consumer.on('error', (err) => {
-            console.log("Consumer Error: " + err);
-        });
-
-        //consumer listens for messages
-        messageValues = [];
-        let tempMessageValues = [];
-        consumer.on('message', (message) => {
-            //console.log("Menu: ", message)
-            tempMessageValues.push(message.value);
-            //refresh page
-            messageValues = tempMessageValues;
-        });
-
-
-
-    });
-
-
-} */ 
-
-//Create a payload to send to topic
-const menuPayLoad = [
-    {
-        topic: 'Menu', 
-        messages: [ 'Appetizers', 'Cheese Fries', '5.99', 'Quantity: 5', 'Onion Rings', '4.99', 'Quantity: 6', 'Lunch', 'Grilled Chicken Alfredo', '11.99', 'Quantity: 3', 'Dinner', 'Double Bacon Burger', '12.99', 'Quantity: 10', 'Sides', 'Fries', '3.99', 'Quantity: 5', 'Drinks', 'Tea', '2.99', 'Quantity: 8'], 
-        timestamp: Date.now()
-    }
-];
-
+//create arrays to hold values
 let messageValues = [];
 let orderValues = [];
 
+let menuValues = {};
+
+//errors
 let error = false;
 let confirmMessage = "";
 
 let updateMenu = (payload, producerCB) => {
     confirmMessage = "";
 
-    producer.send(payload, producerCB);
-
-   // consumerInit();
-   
+    menuProducer.send(payload, producerCB);  
 }
 
-producer.connect();
-chefProducer.connect();
+//connect to the producers
+menuProducer.connect();
+orderProducer.connect();
 
-//chefConsumer.connect();
-
-//listen for errors - producer
-producer.on('error', (err) => {
-    console.log("Producer Error: " + err);
+//listen for errors - producers
+menuProducer.on('error', (err) => {
+    console.log("Menu Producer Error: " + err);
 });
 
-/* chefProducer.on('ready', () => {
+orderProducer.on('error', (err) => {
+    console.log("Order Producer Error: " + err);
+});
 
-}); */
-//When producer is ready send payload to topic
-producer.on('ready', () => {
-    //list topics
-    let menuExists = false;
-    admin.listTopics((err, res) => {
-        for(let topic in res[1].metadata){
-            //console.log(topic);
-            //check if topic exists or not
-            if(topic === "Menu"){
-                menuExists = true;
-            }
-        }
-    });
-
-    if(!menuExists){
-        producer.createTopics(['Menu'], true, (err,data) => {
-        if(err){
-            console.log(err);
-        } 
-        });
-    }
-
-    //consumerInit();
-    producer.send(menuPayLoad, (err, data) => {
+//When producers are ready send payload to topic
+menuProducer.on('ready', () => {
+    menuProducer.send([menuPayLoad], (err, data) => {
         if(err){
             console.log(err);
         }
+        console.log(data);
     });
 
-    chefConsumer.on('error', (err) => {
-        console.log('Chef Consumer Error: ', err);
-    });
+    //console.log("Menu Producer Ready");
 }); 
+orderProducer.on('ready', () => {
+    //console.log("Order Producer Ready");
+});
 
-consumer.on('message', (message) => {
+/* consumer.on('message', (message) => {
     //console.log(message.value);
     messageValues.push(message.value);
-});
+}); */
 
-chefConsumer.on('message', (message) => {
+/* chefConsumer.on('message', (message) => {
     orderValues.push(message.value);
     console.log(message.value);
+}); */
+
+//listen for stream messages
+menuStream.forEach(message => {
+    let buf = message.value;
+    //console.log(message);
+    messageValues.push(buf.toString());
+    //updateMenuObject(message);
 });
 
-let order;
+orderStream.forEach(message => {
+    let buf = message.value;
+    console.log(buf);
+    orderValues.push(buf.toString());
+});
+
+//start streams
+menuStream.start().then(_ => {
+    setTimeout(menuStreams.closeAll.bind(menuStreams), 100);
+});
+
+orderStream.start().then(_ => {
+    setTimeout(orderStreams.closeAll.bind(orderStreams), 100);
+});
+
+let updateMenuCategory = "";
+let item = [];
+let currentIndex;
+
+const isEmpty = (obj) => {
+    for(let key in obj){
+        if(obj.hasOwnProperty(key)){
+            return false;
+        } 
+    }
+    return true;
+}
+
+const updateMenuObject = (message) => {
+    let currentValue;
+    let timestamp = message.timestamp;
+    let value = message.value.toString();
+    if(menuValues[timestamp] == undefined){
+        //if timestamp doesn't exists add it and continue
+        menuValues[timestamp] = {};
+    } 
+    currentValue = menuValues[timestamp];
+    //check if value is a category
+    switch(value){
+        case "Appetizers":
+            //set updateMenuCategory
+            updateMenuCategory = "Appetizers";
+            break;
+        case "Lunch":
+            //set updateMenuCategory
+            updateMenuCategory = "Lunch";
+            break;
+        case "Dinner":
+            //set updateMenuCategory
+            updateMenuCategory = "Dinner";
+            break;
+        case "Sides":
+            //set updateMenuCategory
+            updateMenuCategory = "Sides";
+            break;
+        case "Drinks":
+            //set updateMenuCategory
+            updateMenuCategory = "Drinks";
+            break;
+        default:
+            let currentCategory;
+
+            //check if category exists
+            if(currentValue[updateMenuCategory] == undefined){
+                currentValue[updateMenuCategory] = {};
+            } else {
+                currentCategory = currentValue[updateMenuCategory];
+            }
+
+            //console.log(item.length);
+
+            
+
+            switch(item.length){
+                case 3: 
+                    //push item to category
+                    //console.log("3: " + value);
+                    //get current item key
+                    console.log(isEmpty(currentCategory));
+                    if(isEmpty(currentCategory)) {
+                        //console.log("EMPTY");
+                        currentIndex = 0;
+                    } else {
+                        let i = Object.keys(currentCategory);
+                        currentIndex = (parseInt(i[i.length - 1])) + 1;
+                        console.log(currentIndex);
+                    }
+                    
+                    currentCategory[currentIndex] = item;
+                    //console.log(menuValues);
+                    //clear item array
+                    item = [];
+
+                    //push current value to item array
+                    item.push(value);
+                    break;
+                case 2: 
+                    //push current value to item array
+                    item.push(value);
+                    //console.log("2: " + value);
+                    break;
+                case 1: 
+                    //push current value to item array
+                    //console.log("1: " + value);
+                    item.push(value);
+                    break;
+                case 0:
+                    //console.log("0: " + value);
+                    item.push(value);
+                    break;
+            }
+
+    }
+
+    //console.log(currentValue);
+}
+
+
 
 module.exports = (app) => {
     
     app.get('/', (req, res) => {
+        //console.log(messageValues);
+        //console.log(Object.keys(menuValues));
+        /* let keys = Object.keys(menuValues);
+        for(let i = 0; i < keys.length; i++){
+            //console.log(Object.keys(menuValues[keys[i]]));
+            let keysKeys = Object.keys(menuValues[keys[i]]);
+            //console.log(keysKeys);
+            for(let j = 0; j < keysKeys.length; j++){
+                //console.log(Object.keys(menuValues[keysKeys]));
+                //console.log(keysKeys[j]);
+                console.log(Object.keys(menuValues[keys[i]][keysKeys[j]]));
+            }
+        } */
 
         if(confirmMessage != ""){
             res.render('consumer', {menuItems: messageValues, confirmMessage: confirmMessage});
@@ -168,6 +239,11 @@ module.exports = (app) => {
             res.render('consumer', {menuItems: messageValues});
         }
        
+    });
+
+    app.get('/chefs', (req, res) => {
+
+        res.render('chefs');
     });
 
     app.get('/revieworder', (req, res) => {
@@ -212,6 +288,11 @@ module.exports = (app) => {
     app.get('/ordersubmit', (req, res) => {
         let order = req.query.order;
         let menu = req.query.menu;
+
+        /* console.log("*********************");
+        console.log(menu);
+        console.log("*********************");
+        console.log(order); */
        
         let newMenu = [
             {
@@ -229,13 +310,13 @@ module.exports = (app) => {
             }
         ];
 
-        producer.send(newMenu, (err, data) => {
+        menuProducer.send(newMenu, (err, data) => {
             if(err){
                 console.log(err);
             }
         });
 
-        chefProducer.send(newOrder, (err, data) => {
+        orderProducer.send(newOrder, (err, data) => {
             if(err){
                 console.log(err);
             }
