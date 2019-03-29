@@ -1,18 +1,10 @@
 const kafka = require('kafka-node');
 const { KafkaStreams } = require('kafka-streams');
 
-//set up Menu stream
-const menuStreamsConfig = require('../config/menuStreamConfig.js');
-const menuStreams = new KafkaStreams(menuStreamsConfig);
-const menuStream = menuStreams.getKStream("Menu");
-
-//set up Order Stream
-const orderStreamsConfig = require('../config/orderStreamConfig.js');
-const orderStreams = new KafkaStreams(orderStreamsConfig);
-const orderStream = orderStreams.getKStream('Orders');
-
-//pull kafka configuration file
+//configuration
 const kafkaConfig = require('../config/kafka');
+const menuStreamConfig = require('../config/menuStreamConfig.js');
+const orderStreamConfig = require('../config/orderStreamConfig.js');
 
 //create menu client
 const menuClient = new kafka.KafkaClient(kafkaConfig);
@@ -21,37 +13,86 @@ const orderClient = new kafka.KafkaClient(kafkaConfig);
 //Producers
 const Producer = kafka.Producer;
 const menuProducer = new Producer(menuClient);
-const orderProducer = new Producer(orderClient);
+const orderProducer = new Producer(menuClient);
 
-//Consumers
-const menuConsumerOptions = require('../config/menuConsumerOptions.js');
-const orderConsumerOptions = require('../config/orderConsumerOptions');
-const Consumer = kafka.Consumer;
-let menuConsumer = new Consumer(menuClient, [{topic: 'Menu'}], menuConsumerOptions);
-const orderConsumer = new Consumer(orderClient, [{topic: 'Order'}], orderConsumerOptions);
-//const offset = new kafka.Offset(client);
+//Stream
+const menuTopic = "Menu";
+const orderTopic = "Order";
+
+const menuStreams = new KafkaStreams(menuStreamConfig);
+const orderStreams = new KafkaStreams(orderStreamConfig);
+
+const menuStream = menuStreams.getKStream(menuTopic);
+const orderStream = orderStreams.getKStream(orderTopic);
+
+menuStream.forEach(message => formatMenu(message));
+menuStream.start().then(() => {
+    console.info("Menu stream started");
+}, error => {
+    console.error("Menu stream failed to start: " + error);
+});
+
+orderStream.forEach(message => formatOrder(message));
+orderStream.start().then(() => {
+    console.info("Order stream started");
+}, error => {
+    console.error("Order stream failed to start: " + error);
+});
+
 
 //Payloads
-const orderPayload = require('../config/orderPayload');
+const orderPayLoad = require('../config/orderPayload');
 const menuPayLoad = require('../config/menuPayload');
 
 //create arrays to hold values
-let messageValues = [];
-let orderValues = [];
+/* let messageValues = []; */
+let menu = [];
+let order = [];
 
-let menuValues = {};
+let menuUpdated = false;
+let orderUpdated = false;
 
-//errors
-let error = false;
-let confirmMessage = "";
+//format Message values and push to menu array
+const formatMenu = (message) => {
+    //console.log("FORMATTING MENU");
+    let timestamp = message.timestamp;
+    let value = message.value.toString();
+    //console.log(menu[menu.length - 1]);
+    if(menu.length == 0){
+        let ob = {}
+        ob[timestamp] = [];
+        menu.push(ob);
+    } else if(Object.keys(menu[menu.length - 1])[0] != timestamp){
+        let ob = {}
+        ob[timestamp] = [];
+        menu.push(ob);
+    }
 
-let updateMenu = (payload, producerCB) => {
-    confirmMessage = "";
-
-    menuProducer.send(payload, producerCB);  
+    menu[menu.length - 1][timestamp].push(value);
+    menuUpdated = true;
 }
 
-//connect to the producers
+const formatOrder = (message) => {
+    //console.log("ORDER RECEIVED");
+    let timestamp = message.timestamp;
+    let value = message.value.toString();
+    if(order.length == 0){
+        let ob = {}
+        ob[timestamp] = [];
+        order.push(ob);
+    } else if(Object.keys(order[order.length - 1])[0] != timestamp){
+        let ob = {}
+        ob[timestamp] = [];
+        order.push(ob);
+    }
+
+    order[order.length - 1][timestamp].push(value);
+    orderUpdated = true;
+
+    console.log(order);
+}
+
+//connect producers
 menuProducer.connect();
 orderProducer.connect();
 
@@ -64,187 +105,67 @@ orderProducer.on('error', (err) => {
     console.log("Order Producer Error: " + err);
 });
 
-//When producers are ready send payload to topic
+//producers - ready 
 menuProducer.on('ready', () => {
     menuProducer.send([menuPayLoad], (err, data) => {
         if(err){
-            console.log(err);
+            console.error(err);
         }
-        console.log(data);
+        //console.log(data);
     });
 
     //console.log("Menu Producer Ready");
 }); 
 orderProducer.on('ready', () => {
-    //console.log("Order Producer Ready");
-});
+    /* orderProducer.send([orderPayLoad], (err, data) => {
+        if(err){
+            console.error(err);
+        }
+        //console.log(data);
+    }); */
 
-/* consumer.on('message', (message) => {
-    //console.log(message.value);
-    messageValues.push(message.value);
-}); */
-
-/* chefConsumer.on('message', (message) => {
-    orderValues.push(message.value);
-    console.log(message.value);
-}); */
-
-//listen for stream messages
-menuStream.forEach(message => {
-    let buf = message.value;
-    //console.log(message);
-    messageValues.push(buf.toString());
-    //updateMenuObject(message);
-});
-
-orderStream.forEach(message => {
-    let buf = message.value;
-    console.log(buf);
-    orderValues.push(buf.toString());
-});
-
-//start streams
-menuStream.start().then(_ => {
-    setTimeout(menuStreams.closeAll.bind(menuStreams), 100);
-});
-
-orderStream.start().then(_ => {
-    setTimeout(orderStreams.closeAll.bind(orderStreams), 100);
-});
-
-let updateMenuCategory = "";
-let item = [];
-let currentIndex;
-
-const isEmpty = (obj) => {
-    for(let key in obj){
-        if(obj.hasOwnProperty(key)){
-            return false;
-        } 
-    }
-    return true;
-}
-
-const updateMenuObject = (message) => {
-    let currentValue;
-    let timestamp = message.timestamp;
-    let value = message.value.toString();
-    if(menuValues[timestamp] == undefined){
-        //if timestamp doesn't exists add it and continue
-        menuValues[timestamp] = {};
-    } 
-    currentValue = menuValues[timestamp];
-    //check if value is a category
-    switch(value){
-        case "Appetizers":
-            //set updateMenuCategory
-            updateMenuCategory = "Appetizers";
-            break;
-        case "Lunch":
-            //set updateMenuCategory
-            updateMenuCategory = "Lunch";
-            break;
-        case "Dinner":
-            //set updateMenuCategory
-            updateMenuCategory = "Dinner";
-            break;
-        case "Sides":
-            //set updateMenuCategory
-            updateMenuCategory = "Sides";
-            break;
-        case "Drinks":
-            //set updateMenuCategory
-            updateMenuCategory = "Drinks";
-            break;
-        default:
-            let currentCategory;
-
-            //check if category exists
-            if(currentValue[updateMenuCategory] == undefined){
-                currentValue[updateMenuCategory] = {};
-            } else {
-                currentCategory = currentValue[updateMenuCategory];
-            }
-
-            //console.log(item.length);
-
-            
-
-            switch(item.length){
-                case 3: 
-                    //push item to category
-                    //console.log("3: " + value);
-                    //get current item key
-                    console.log(isEmpty(currentCategory));
-                    if(isEmpty(currentCategory)) {
-                        //console.log("EMPTY");
-                        currentIndex = 0;
-                    } else {
-                        let i = Object.keys(currentCategory);
-                        currentIndex = (parseInt(i[i.length - 1])) + 1;
-                        console.log(currentIndex);
-                    }
-                    
-                    currentCategory[currentIndex] = item;
-                    //console.log(menuValues);
-                    //clear item array
-                    item = [];
-
-                    //push current value to item array
-                    item.push(value);
-                    break;
-                case 2: 
-                    //push current value to item array
-                    item.push(value);
-                    //console.log("2: " + value);
-                    break;
-                case 1: 
-                    //push current value to item array
-                    //console.log("1: " + value);
-                    item.push(value);
-                    break;
-                case 0:
-                    //console.log("0: " + value);
-                    item.push(value);
-                    break;
-            }
-
-    }
-
-    //console.log(currentValue);
-}
-
-
+    //console.log("Menu Producer Ready");
+}); 
 
 module.exports = (app) => {
     
     app.get('/', (req, res) => {
-        //console.log(messageValues);
-        //console.log(Object.keys(menuValues));
-        /* let keys = Object.keys(menuValues);
-        for(let i = 0; i < keys.length; i++){
-            //console.log(Object.keys(menuValues[keys[i]]));
-            let keysKeys = Object.keys(menuValues[keys[i]]);
-            //console.log(keysKeys);
-            for(let j = 0; j < keysKeys.length; j++){
-                //console.log(Object.keys(menuValues[keysKeys]));
-                //console.log(keysKeys[j]);
-                console.log(Object.keys(menuValues[keys[i]][keysKeys[j]]));
-            }
-        } */
+        
+        let currentMenu = menu[menu.length - 1];
+        let timestamp = Object.keys(currentMenu)[0];
+        currentMenu = currentMenu[timestamp];
 
-        if(confirmMessage != ""){
-            res.render('consumer', {menuItems: messageValues, confirmMessage: confirmMessage});
-        } else {
-            res.render('consumer', {menuItems: messageValues});
-        }
-       
+       /*  setInterval(() => {
+        if(menuUpdated){
+            menuUpdated = false;
+            res.append('menuItems', currentMenu);
+        }}, 3000);
+ */
+        res.render('consumer', {menuItems: currentMenu});
+        
     });
 
     app.get('/chefs', (req, res) => {
+        if(req.query.ordersRemaining){
+            const newOrderPayLoad = [
+                {
+                    topic: 'Order', 
+                    messages: req.query.ordersRemaining,
+                    timestamp: Date.now()
+                }
+            ];
+            console.log(req.query.ordersRemaining);
+            
+            orderProducer.send([newOrderPayLoad], (err, data) => {
+                if(err){
+                    console.error(err);
+                }
+            });
+        }
 
-        res.render('chefs');
+        res.render('chefs', {'orders': JSON.stringify(order)});
     });
+
 
     app.get('/revieworder', (req, res) => {
         let orderAr = req.query.order;
@@ -254,11 +175,12 @@ module.exports = (app) => {
 
     app.get('/admin/updateMenu', (req, res) => {
         
-        res.render('updateMenu', {menuItems: messageValues});
+        res.render('updateMenu', {menuItems: menu});
     });
 
     app.get('/menusubmit', (req, res) => {
         let menu = req.query.newMenu.split(',');
+        
 
         const newMenuPayLoad = [
             {
@@ -277,7 +199,7 @@ module.exports = (app) => {
         });
         
         if(error){
-            res.render('consumer', {menuItems: messageValues, error: confirmMessage});
+            res.render('consumer', {menuItems: menu, error: confirmMessage});
         } else {
             
             res.redirect("/");
@@ -288,7 +210,7 @@ module.exports = (app) => {
     app.get('/ordersubmit', (req, res) => {
         let order = req.query.order;
         let menu = req.query.menu;
-
+        console.log(order);
         /* console.log("*********************");
         console.log(menu);
         console.log("*********************");
@@ -312,13 +234,13 @@ module.exports = (app) => {
 
         menuProducer.send(newMenu, (err, data) => {
             if(err){
-                console.log(err);
+                console.error(err);
             }
         });
 
         orderProducer.send(newOrder, (err, data) => {
             if(err){
-                console.log(err);
+                console.error(err);
             }
 
             //console.log(data);

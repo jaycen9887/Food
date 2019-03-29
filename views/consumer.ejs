@@ -42,8 +42,11 @@
         </div>
         <script src="./js/ejs.min.js"></script>
         <script>
+           
+
             let itemPlacement = "";
             let menuItems = '<%= menuItems%>'.split(',');
+            console.log(menuItems);
             let menuPrice = 0;
             let itemToSkip = 0;
             let quantityIndex = 0;
@@ -99,6 +102,42 @@
                         }
                     }
                 });
+
+                const updateQuantity = () => {
+                    menuItems = '<%= menuItems%>'.split(',');
+                    //console.log(menuItems);
+                    let quantities = document.getElementsByClassName("quantity");
+                    let quantArray = [];
+                    for(let i = 0; i < menuItems.length; i++){
+                        //let quantity = menuItems[index];
+                        switch(menuItems[i]){
+                            case "Appetizers":
+                                break;
+                            case "Lunch": 
+                                break;
+                            case "Dinner":
+                                break;
+                            case "Sides":
+                                break;
+                            case "Drinks":
+                                break;
+                            default:
+                                if(menuItems[i].includes("Quantity")){
+                                    //console.log("" + menuItems[i]);
+                                    quantArray.push(menuItems[i]);
+                                    //
+                                } else {
+                                    break;
+                                }
+                        }
+                    }
+
+                    for(let j = 0; j < quantities.length; j++){
+                        quantities[j].innerText = "(" + quantArray[j] + " available)";
+                    }
+                }
+
+                //setInterval(updateQuantity, 3000);
                 
             }            
         </script>

@@ -58,12 +58,18 @@ if(document.getElementById('review') != null){
 
     submitButton.onclick = () => {
         let inputs = document.getElementsByTagName('input');
+        let day = new Date().getDate();
+        let hour = new Date().getHours();
+        let min = new Date().getMinutes();
+        let sec = new Date().getSeconds();
         for(let i = 0; i < inputs.length; i++){
             //console.log(inputs[i]);
             let type = inputs[i].alt;
             switch(type){
                 case "Appetizers":
-                    menu.push('Appetizers');
+                    if(menu[0] !== "Appetizers"){
+                        menu.push('Appetizers');
+                    }
                     break;
                 case "Lunch":
                     menu.push('Lunch');
@@ -77,18 +83,25 @@ if(document.getElementById('review') != null){
                 case "Drinks":
                     menu.push('Drinks');
                     break;
-            }
-
+                default: 
+            }   
+            console.log(inputs[i]);
             menu.push(inputs[i].id);
             menu.push(inputs[i].name);
-            menu.push(inputs[i].max - inputs[i].value);
-        
+            menu.push("Quantity: " + (inputs[i].max - inputs[i].value)); 
+                    
 
             if(inputs[i].value != 0){
-                order.push([inputs[i].value, inputs[i].id, orderSubtotal, orderTotal]);
+                order.push(inputs[i].value);
+                order.push(inputs[i].id);
             }
         }
+        let orderNum = day + "" + hour + "" + min + "" + sec;
+        order.splice(0,0, orderNum);
+        order.push(orderSubtotal);
+        order.push(orderTotal);
         update = true;
+        console.log(menu);
         window.location.href = '/ordersubmit?order=' + order + "&menu=" + menu;
     };
 }
@@ -129,6 +142,10 @@ if(document.getElementById('updateMenu') != null){
                 newMenu.push(item);
                 newMenu.push(price);
                 newMenu.push("Quantity: " + quant);
+
+                console.log("Item: ", item);
+                console.log("Price: ", price);
+                console.log("Quantity: ", quant);
             }
         }
 
@@ -138,53 +155,3 @@ if(document.getElementById('updateMenu') != null){
     }
 }
 
-if(document.getElementById('chefs')){
-    //grab all order-container divs
-    let orders = document.getElementsByClassName('order-container');
-    let selected;
-
-    document.onkeydown = (e) => {
-        
-        if(e.keyCode == 38){
-            // if up key is pressed
-            for(let i = 0; i < orders.length; i++){
-                if(orders[i].classList.contains("selected") && i != 0){
-                    //remove 'selected' class from current 
-                    orders[i].classList.remove('selected');
-                    //give the element above this current one the class 'selected'
-                    orders[i - 1].classList.add('selected');
-                }
-            }
-
-        } else if(e.keyCode == 40){
-            //if down key is pressed
-            for(let j = 0; j < orders.length; j++){
-                if(orders[j].classList.contains('selected') && j != (orders.length - 1)){
-                     //remove 'selected' class from current 
-                     orders[j].classList.remove('selected');
-                     //give the element belo this current one the class 'selected'
-                     orders[j + 1].classList.add('selected');
-                }
-            }
-        } else if(e.keyCode == 13){
-            //if enter key is pressed
-            console.log(orders);
-            for(let i = 0; i < orders.length; i++){
-                //if item is selected
-                if(orders[i].classList.contains('selected')){
-                    //remove element
-                    orders[i].parentNode.removeChild(orders[i]);
-                    //grab information and push to newOrders array to post
-                    let newOrders=[];
-                    /* let xhr = new XMLHttpRequest();
-                    xhr.open("POST", "/updateOrders", true);
-                    xhr.setRequestHeader('Content-Type', "application/json");
-                    xhr.send(JSON.stringify({orders: newOrders})); */
-                    if(orders.length > 0){
-                        orders[i].classList.add('selected');
-                    } 
-                }
-            }
-        }
-    }
-}

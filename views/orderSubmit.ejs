@@ -9,7 +9,7 @@
         <div class="title" id="order-submitted">
             <h1>Order Submitted</h1>
         </div>
-
+        <h3 style="text-align: center; width: 100%;">Order: #<span id="orderNum"></span></h3>
         <table style='font-size: 16px;' id="order">
             <tr>
                 <th>Amount</th>
@@ -26,23 +26,26 @@
         <script src="./js/ejs.min.js"></script>
         <script> 
             let orderSubmitted = '<%= order %>'.split(',');
-            //console.log(orderSubmitted);
+            console.log(orderSubmitted);
             let orderTr = document.getElementById('order');
-            let subTotal = document.getElementById('subtotal').innerText = orderSubmitted[2];
-            let total = document.getElementById('total').innerText = orderSubmitted[3];
+            let subTotal = document.getElementById('subtotal').innerText = orderSubmitted[orderSubmitted.length - 2];
+            let total = document.getElementById('total').innerText = orderSubmitted[orderSubmitted.length - 1];
             if(orderSubmitted.length > 0) {
                 orderSubmitted.forEach((item, index) => {
-
-                    if(index % 4 == 0){
-                    let newTr = document.createElement('tr')
-                    let amountTd = document.createElement('td');
-                    amountTd.innerText = item;
-                    let itemTd = document.createElement('td');
-                    itemTd.innerText = orderSubmitted[index + 1];
-                    console.log(item);
-                    newTr.appendChild(amountTd);
-                    newTr.appendChild(itemTd);
-                    orderTr.appendChild(newTr);
+                    if(index == 0){
+                        //grab order number
+                        let orderNumber = document.getElementById('orderNum');
+                        orderNumber.innerText = item;
+                    } else if(index % 2 != 0 && index != orderSubmitted.length - 1 && index != orderSubmitted.length - 2){
+                        let newTr = document.createElement('tr')
+                        let amountTd = document.createElement('td');
+                        amountTd.innerText = item;
+                        let itemTd = document.createElement('td');
+                        itemTd.innerText = orderSubmitted[index + 1];
+                        console.log(item);
+                        newTr.appendChild(amountTd);
+                        newTr.appendChild(itemTd);
+                        orderTr.appendChild(newTr);
                     }
                 });
             }

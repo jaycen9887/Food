@@ -10,7 +10,7 @@
             <h1 class="title">Orders</h1>
             
             <div id="order-list">
-                <div class="order-container">
+                <!-- <div class="order-container selected">
                     <h1>#32111</h1>
                     <table>
                         <tr>
@@ -22,64 +22,136 @@
                             <td><h3>Teas</h3></td>
                         </tr>
                     </table>
-                </div>
-                <div class="order-container selected">
-                    <h1>#32112</h1>
-                    <table>
-                        <tr>
-                            <td><h3>1</h3></td>
-                            <td><h3>Onion Ring</h3></td>
-                        </tr>
-                        <tr>
-                            <td><h3>1</h3></td>
-                            <td><h3>Chicken Alfredo</h3></td>
-                        </tr>
-                        <tr>
-                            <td><h3>1</h3></td>
-                            <td><h3>Teas</h3></td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="order-container">
-                    <h1>#32113</h1>
-                    <table>
-                        <tr>
-                            <td><h3>1</h3></td>
-                            <td><h3>Cheese Fries</h3></td>
-                        </tr>
-                        <tr>
-                            <td><h3>2</h3></td>
-                            <td><h3>Chicken Alfredo</h3></td>
-                        </tr>
-                        <tr>
-                            <td><h3>2</h3></td>
-                            <td><h3>Teas</h3></td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="order-container">
-                    <h1>#32114</h1>
-                    <table>
-                        <tr>
-                            <td><h3>1</h3></td>
-                            <td><h3>Cheese Fries</h3></td>
-                        </tr>
-                        <tr>
-                            <td><h3>2</h3></td>
-                            <td><h3>Chicken Alfredo</h3></td>
-                        </tr>
-                        <tr>
-                            <td><h3>2</h3></td>
-                            <td><h3>Teas</h3></td>
-                        </tr>
-                    </table>
-                </div>
+                </div> -->
             </div>
                   
         </div>
         <script src="./js/ejs.min.js"></script>
         <script>
-              
+            let orders = '<%- orders%>'.split(',');
+            orders = JSON.parse(orders);
+            console.log(orders);
+            let orderKeys = Object.keys(orders);
+            let orderListDiv = document.getElementById('order-list');
+            for(let i = 0; i < orderKeys.length; i++){
+                let currentOrder = orders[i];
+                let currentTimestamp = Object.keys(currentOrder)[0];
+                currentOrder = currentOrder[currentTimestamp][0].split(',');
+
+                let div = document.createElement('div');
+                div.className = "order-container";
+                if(i == 0){
+                    div.classList.add('selected');
+                }
+                //order number
+                let orderNum = document.createElement('h1');
+                orderNum.className = "order-number";
+                orderNum.innerText = "#" + currentOrder[0];
+                orderNum.title = "Subtotal: " + currentOrder[currentOrder.length - 2] + ",Total: " + currentOrder[currentOrder.length - 1];
+                div.appendChild(orderNum);
+
+                //create table
+                let orderTable = document.createElement('table');
+                for(let j = 1; j < (currentOrder.length - 2); j+=2){
+                    //setup amount
+                    let orderTr = document.createElement('tr');
+                    
+                    let amountTd = document.createElement('td');
+                    let amountH3 = document.createElement('h3');
+                    amountH3.innerText = currentOrder[j];
+                    amountTd.appendChild(amountH3);
+                    orderTr.appendChild(amountTd);
+
+                    //console.log(currentOrder[j]);
+
+                    //setup item 
+                    let itemTd = document.createElement('td');
+                    let itemH3 = document.createElement('h3');
+                    itemH3.innerText = currentOrder[j + 1];
+                    itemTd.appendChild(itemH3);
+                    orderTr.appendChild(itemTd);
+
+                    orderTable.appendChild(orderTr);
+                }
+
+               div.appendChild(orderTable);
+               orderListDiv.appendChild(div);
+
+                //console.log(currentOrder);
+            }
+
+            //grab all order-container divs
+    let orderList = document.getElementsByClassName('order-container');
+    let selected;
+
+    document.onkeydown = (e) => {
+        
+        if(e.keyCode == 38){
+            // if up key is pressed
+            for(let i = 0; i < orderList.length; i++){
+                if(orderList[i].classList.contains("selected") && i != 0){
+                    //remove 'selected' class from current 
+                    orderList[i].classList.remove('selected');
+                    //give the element above this current one the class 'selected'
+                    orderList[i - 1].classList.add('selected');
+                }
+            }
+
+        } else if(e.keyCode == 40){
+            //if down key is pressed
+            let index = 0;
+            for(let j = 0; j < orderList.length; j++){
+                if(orderList[j].classList.contains('selected') && j != (orderList.length - 1)){
+                    index = j;
+                    break;
+                }
+            }
+            //remove 'selected' class from current 
+            orderList[index].classList.remove('selected');
+            //give the element below this current one the class 'selected'
+            orderList[index + 1].classList.add('selected');
+        } else if(e.keyCode == 13){
+            //if enter key is pressed
+            //console.log(orderList);
+            let newOrderList=[];
+            for(let i = 0; i < orderList.length; i++){
+                //if item is selected
+                if(orderList[i].classList.contains('selected')){
+                    //remove element from screen
+                   orderList[i].parentNode.removeChild(orderList[i]);
+                    //grab information and push to neworderList array to post
+                    
+                    let orderListRemaining = document.getElementsByClassName('order-container');
+                    for(let i = 0; i < orderListRemaining.length; i++){
+                        //console.log(orderListRemaining[i].);
+                        let current = orderListRemaining[i];
+                        let orderNumber = current.getElementsByClassName('order-number')[0].innerText;
+                        orderNumber = orderNumber.substr(1);
+                        newOrderList.push(orderNumber);
+
+                        let subTotal = current.getElementsByClassName('order-number')[0].title.split(',')[0].substr(10,15);
+                        let total = current.getElementsByClassName('order-number')[0].title.split(',')[1].substr(7,12);
+                        
+                        let content = current.getElementsByTagName('h3');
+                        for(let j = 0; j < content.length; j++){
+                            newOrderList.push(content[j].innerText);
+                        }
+
+                        newOrderList.push(subTotal);
+                        newOrderList.push(total);
+                    }
+                    
+                    /* if(orderList.length > 0){
+                        orderList[i].classList.add('selected');
+                    }  */
+                }
+            }
+
+            console.log(newOrderList.toString());
+            window.location = '/chefs?ordersRemaining=' + newOrderList.join(',');
+            
+        }
+    }
         </script>
         <script src="./js/main.js"></script>
     </body>
