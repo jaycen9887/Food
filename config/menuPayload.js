@@ -1,5 +1,29 @@
 module.exports = {
-    topic: 'Menu', 
-    messages: [ 'Appetizers', 'Cheese Fries', '5.99', 'Quantity: 5', 'Onion Rings', '4.99', 'Quantity: 6', 'Lunch', 'Grilled Chicken Alfredo', '11.99', 'Quantity: 3', 'Dinner', 'Double Bacon Burger', '12.99', 'Quantity: 10', 'Sides', 'Fries', '3.99', 'Quantity: 5', 'Drinks', 'Tea', '2.99', 'Quantity: 8'], 
-    timestamp: Date.now()
+  topic: "Menu",
+  messages: [
+    "Appetizers",
+    "Cheese Fries",
+    "5.99",
+    "Quantity: 5",
+    "Onion Rings",
+    "4.99",
+    "Quantity: 6",
+    "Lunch",
+    "Chicken Alfredo",
+    "11.99",
+    "Quantity: 3",
+    "Dinner",
+    "Double Bacon Burger",
+    "12.99",
+    "Quantity: 10",
+    "Sides",
+    "Fries",
+    "3.99",
+    "Quantity: 5",
+    "Drinks",
+    "Tea",
+    "2.99",
+    "Quantity: 8"
+  ],
+  timestamp: Date.now()
 };

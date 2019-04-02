@@ -1,111 +1,183 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Review Order</title> 
-        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-        <link rel="stylesheet" href="../css/main.css" />
-    </head>
-    <body id="review">
-        <div id="order-submitted">
-            <h1 class='title'>Review Order</h1>
-        </div>
+  <head>
+    <title>Review Order</title>
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
+      integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="../css/main.css" />
+  </head>
+  <body id="review">
+    <div id="order-submitted">
+      <h1 class="title">Review Order</h1>
+    </div>
 
-        <!-- <form id="review-form" action="/ordersubmit" method="POST"> -->
-        <div id="review-form">
-            <table id="review-order">
-                <tr>
-                    <th>Ordering</th>
-                    <th>Item</th>
-                    <th>Price</th>
-                </tr>
-            </table>
-        </div>
-            <button id='order-submit'>Submit Order</button>
-        <!-- </form> -->
+    <!-- <form id="review-form" action="/ordersubmit" method="POST"> -->
+    <div id="review-form">
+      <table id="review-order">
+        <tr>
+          <th>Ordering</th>
+          <th>Item</th>
+          <th>Price</th>
+        </tr>
+      </table>
+    </div>
+    <button id="order-submit">Submit Order</button>
+    <!-- </form> -->
 
-        <script src="./js/ejs.min.js"></script>
-        <script> 
-            let orderToReview = '<%= order %>'.split(',');
-            let reviewTable = document.getElementById('review-order');
-            let reviewForm = document.getElementById('review-form');
-            let subtotal = 0;
-            let total = 0;
+    <!-- <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="../js/main.js"></script>
 
-            //for each item in orderToReview
-            if(orderToReview.length > 0) {
-                orderToReview.forEach((item, index) => {
-                    
-                    if(index % 6 == 0){
-                        let input = document.createElement('input');
-                        let orderTd = document.createElement('td');
-                        let itemTd = document.createElement('td');
-                        let priceTd = document.createElement('td');
-                        let itemTr = document.createElement('tr');
+    <script src="./js/ejs.min.js"></script>
+    <script>
+      //const socket = io();
 
-                        input.type = 'number';
-                        input.id = orderToReview[index + 1];
-                        input.name = orderToReview[index + 4];
-                        input.min = orderToReview[index + 3];
-                        input.max = orderToReview[index + 2];
-                        input.value = item;
-                        input.alt = orderToReview[index + 5]
+      let submitButton = $("#order-submit");
+      let menu = [];
+      let orders = [];
+      let orderSubtotal;
+      let orderTotal;
 
-                        orderTd.appendChild(input);
-                        subtotal += parseFloat(input.name) * parseFloat(item);
+      $("#order-submit").click(() => {
+        let inputs = document.getElementsByTagName("input");
+        let day = new Date().getDate();
+        let hour = new Date().getHours();
+        let min = new Date().getMinutes();
+        let sec = new Date().getSeconds();
+        orderSubtotal = $("#subtotal").text();
+        orderTotal = $("#total").text();
+        for (let i = 0; i < inputs.length; i++) {
+          //console.log(inputs[i]);
+          let type = inputs[i].alt;
+          switch (type) {
+            case "Appetizers":
+              if (menu[0] !== "Appetizers") {
+                menu.push("Appetizers");
+              }
+              break;
+            case "Lunch":
+              menu.push("Lunch");
+              break;
+            case "Dinner":
+              menu.push("Dinner");
+              break;
+            case "Sides":
+              menu.push("Sides");
+              break;
+            case "Drinks":
+              menu.push("Drinks");
+              break;
+            default:
+          }
+          //console.log(inputs[i]);
+          menu.push(inputs[i].id);
+          menu.push(inputs[i].name);
+          menu.push("Quantity: " + (inputs[i].max - inputs[i].value));
 
-                        itemTd.append(input.id);
-                        priceTd.append(input.name);
+          if (inputs[i].value != 0) {
+            orders.push(inputs[i].value);
+            orders.push(inputs[i].id);
+          }
+        }
+        let orderNum = day + "" + hour + "" + min + "" + sec;
+        orders.splice(0, 0, orderNum);
+        orders.push(orderSubtotal);
+        orders.push(orderTotal);
+        update = true;
+        console.log(orders);
+        let msg = JSON.stringify(menu) + "+" + JSON.stringify(order);
+        socket.emit("chat message", msg);
+        window.location.href = "/ordersubmit?order=" + orders + "&menu=" + menu;
+      });
 
-                        itemTr.appendChild(orderTd);
-                        itemTr.appendChild(itemTd);
-                        itemTr.appendChild(priceTd);
-                        reviewTable.appendChild(itemTr);
-                    }
-                });
+      let orderToReview = "<%= order %>".split(",");
+      let reviewTable = document.getElementById("review-order");
+      let reviewForm = document.getElementById("review-form");
+      let subtotal = 0;
+      let total = 0;
 
-                let totalsDiv = document.createElement('div');
-                let subTotalHeader = document.createElement('h3');
-                let totalHeader = document.createElement('h3');
+      //for each item in orderToReview
+      if (orderToReview.length > 0) {
+        orderToReview.forEach((item, index) => {
+          if (index % 6 == 0) {
+            let input = document.createElement("input");
+            let orderTd = document.createElement("td");
+            let itemTd = document.createElement("td");
+            let priceTd = document.createElement("td");
+            let itemTr = document.createElement("tr");
 
-                totalsDiv.id = "totals";
+            input.type = "number";
+            input.id = orderToReview[index + 1];
+            input.name = orderToReview[index + 4];
+            input.min = orderToReview[index + 3];
+            input.max = orderToReview[index + 2];
+            input.value = item;
+            input.alt = orderToReview[index + 5];
 
-                subTotalHeader.innerHTML = "Subtotal: $<span id='subtotal'>" + subtotal.toFixed(2) +"</span>";
-                totalHeader.innerHTML = "Total (subtotal + tax): $<span id='total'>" + (subtotal +  (subtotal * .07)).toFixed(2) + "</span>";
+            orderTd.appendChild(input);
+            subtotal += parseFloat(input.name) * parseFloat(item);
 
-                totalsDiv.appendChild(subTotalHeader);
-                totalsDiv.appendChild(totalHeader);
-                reviewForm.appendChild(totalsDiv);
+            itemTd.append(input.id);
+            priceTd.append(input.name);
 
-                /*let submitButton = document.createElement('input');
+            itemTr.appendChild(orderTd);
+            itemTr.appendChild(itemTd);
+            itemTr.appendChild(priceTd);
+            reviewTable.appendChild(itemTr);
+          }
+        });
+
+        let totalsDiv = document.createElement("div");
+        let subTotalHeader = document.createElement("h3");
+        let totalHeader = document.createElement("h3");
+
+        totalsDiv.id = "totals";
+
+        subTotalHeader.innerHTML =
+          "Subtotal: $<span id='subtotal'>" + subtotal.toFixed(2) + "</span>";
+        totalHeader.innerHTML =
+          "Total (subtotal + tax): $<span id='total'>" +
+          (subtotal + subtotal * 0.07).toFixed(2) +
+          "</span>";
+
+        totalsDiv.appendChild(subTotalHeader);
+        totalsDiv.appendChild(totalHeader);
+        reviewForm.appendChild(totalsDiv);
+
+        /*let submitButton = document.createElement('input');
                 submitButton.type = 'submit';
                 submitButton.innerText = "Submit Order";
                 reviewForm.appendChild(submitButton);*/
-            }
+      }
 
-            
-            
-            let inputs = document.getElementsByTagName('input');
-            
-            const updateTotals = () => {
-                let newSubTotal = 0;
-                let newTotal = 0;
-                for(let i = 0; i < inputs.length; i++){
-                    let value = inputs[i].value;
-                    let price = inputs[i].name;
-                    newSubTotal += price * value;
-                    newTotal = newSubTotal + (newSubTotal * .07);
-                    document.getElementById("subtotal").innerText = newSubTotal.toFixed(2);
-                    document.getElementById("total").innerText= newTotal.toFixed(2);
-                }
-            }
+      let inputs = document.getElementsByTagName("input");
 
-            window.onload = () => {               
-                console.log(inputs);
-                for(let i = 0; i < inputs.length; i++){
-                    inputs[i].addEventListener("change", updateTotals);
-                }                
-            }
-        </script>
-        <script src="../js/main.js"></script>
-    </body>
+      const updateTotals = () => {
+        let newSubTotal = 0;
+        let newTotal = 0;
+        for (let i = 0; i < inputs.length; i++) {
+          let value = inputs[i].value;
+          let price = inputs[i].name;
+          newSubTotal += price * value;
+          newTotal = newSubTotal + newSubTotal * 0.07;
+          document.getElementById("subtotal").innerText = newSubTotal.toFixed(
+            2
+          );
+          document.getElementById("total").innerText = newTotal.toFixed(2);
+        }
+      };
+
+      window.onload = () => {
+        //console.log(inputs);
+        for (let i = 0; i < inputs.length; i++) {
+          inputs[i].addEventListener("change", updateTotals);
+        }
+      };
+    </script>
+  </body>
 </html>
