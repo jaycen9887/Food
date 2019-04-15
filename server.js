@@ -53,7 +53,10 @@ app.set("view engine", "ejs");
 
 http.listen(port, () => console.log("App listening on port: " + port));
 
-menuStream.forEach(message => formatMenu(message));
+menuStream.forEach(message => {
+  formatMenu(message);
+  console.log("Menu Received");
+});
 menuStream.start().then(
   () => {
     console.info("Menu stream started");
@@ -63,7 +66,10 @@ menuStream.start().then(
   }
 );
 
-orderStream.forEach(message => formatOrder(message));
+orderStream.forEach(message => {
+  formatOrder(message);
+  console.log("Order Received");
+});
 orderStream.start().then(
   () => {
     console.info("Order stream started");
@@ -143,6 +149,7 @@ menuProducer.on("ready", () => {
     if (err) {
       console.error(err);
     }
+    console.log("Menu Sent");
   });
 });
 orderProducer.on("ready", () => {});
@@ -164,9 +171,10 @@ io.on("connection", socket => {
 
 app.get("/", (req, res) => {
   let currentMenu = menu[menu.length - 1];
-  let timestamp = Object.keys(currentMenu)[0];
-  currentMenu = currentMenu[timestamp];
-
+  if (currentMenu != undefined) {
+    let timestamp = Object.keys(currentMenu)[0];
+    currentMenu = currentMenu[timestamp];
+  }
   res.render("consumer", { menuItems: currentMenu });
 });
 
