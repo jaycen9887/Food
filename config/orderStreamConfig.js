@@ -1,12 +1,12 @@
 const streamOptions = {
-  //kafkaHost: "localhost:9092",
+  kafkaHost: "localhost:9092",
   /* kafkaHost: "velomobile-01.srvs.cloudkafka.com:9094",
   sasl: {
     mechanism: "plain",
     username: "rpo02wop",
     password: "ckwmPJTCIaxzKfTB94PLcIfWGgqCzTuF"
   }, */
-  kafkaHost: "192.168.1.98:9092",
+  //kafkaHost: "192.168.1.98:9092",
   groupId: "Order-Group",
   clientName: "Order-Stream",
   workerPerPartition: 1,

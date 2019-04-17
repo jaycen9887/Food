@@ -47,6 +47,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use(express.static(__dirname + "/app"));
+app.set("views", "./views");
 app.set("view engine", "ejs");
 
 //require("./routes/routes.js")(app, io);
@@ -55,7 +56,7 @@ http.listen(port, () => console.log("App listening on port: " + port));
 
 menuStream.forEach(message => {
   formatMenu(message);
-  console.log("Menu Received");
+  //console.log("Menu Received");
 });
 menuStream.start().then(
   () => {
@@ -145,6 +146,7 @@ orderProducer.on("error", err => {
 
 //producers - ready
 menuProducer.on("ready", () => {
+  //console.log(menuPayLoad);
   menuProducer.send([menuPayLoad], (err, data) => {
     if (err) {
       console.error(err);
@@ -154,10 +156,16 @@ menuProducer.on("ready", () => {
 });
 orderProducer.on("ready", () => {});
 
+const pushToSocket = msg => {
+  console.log(msg);
+  io.emit("chat message", msg);
+};
+
 io.on("connection", socket => {
-  console.log("SOCKET CONNECTED");
+  //console.log("SOCKET CONNECTED");
   socket.on("chat message", msg => {
     //console.log("MESSAGE Received");
+    //console.log(msg);
     let temp = msg.split("+");
     let sentMenu = JSON.parse(temp[0]);
     let sentOrder = JSON.parse(temp[1]);
@@ -206,11 +214,19 @@ app.get("/revieworder", (req, res) => {
 });
 
 app.get("/admin/updateMenu", (req, res) => {
-  res.render("updateMenu", { menuItems: menu });
+  let currentMenu = menu[menu.length - 1];
+  if (currentMenu != undefined) {
+    let timestamp = Object.keys(currentMenu)[0];
+    currentMenu = currentMenu[timestamp];
+  }
+  res.render("updateMenu", { menuItems: currentMenu });
+  //res.render("updateMenu", { menuItems: menu });
 });
 
 app.get("/menusubmit", (req, res) => {
-  let menu = req.query.newMenu.split(",");
+  console.log(req.query.newMenu);
+  let menu = req.query.newMenu;
+  menu = menu.split(",");
 
   const newMenuPayLoad = [
     {
@@ -220,19 +236,25 @@ app.get("/menusubmit", (req, res) => {
     }
   ];
 
-  updateMenu(newMenuPayLoad, (err, data) => {
+  //console.log(newMenuPayLoad);
+
+  menuProducer.send(newMenuPayLoad, (err, data) => {
+    if (err) {
+      console.error(err);
+    }
+    console.log("Menu Sent");
+  });
+
+  pushToSocket(menu);
+  /* updateMenu(newMenuPayLoad, (err, data) => {
     if (err) {
       confirmMessage = "Error updating Menu: " + error;
     } else {
       confirmMessage = "Menu Successfully Updated";
     }
-  });
+  }); */
 
-  if (error) {
-    res.render("consumer", { menuItems: menu, error: confirmMessage });
-  } else {
-    res.redirect("/");
-  }
+  res.redirect("/");
 });
 
 app.get("/ordersubmit", (req, res) => {

@@ -51,9 +51,30 @@
     <script>
       //const socket = io();
       socket.on("chat message", msg => {
-        console.log(msg);
-        updateQuantity(msg);
+        console.log(typeof msg);
+        if (typeof msg == "string") {
+          if (msg[0] == "[") {
+            msg = msg.substr(1, msg.length - 5);
+          }
+          console.log(msg);
+          msg = msg.split(",");
+
+          for (let i = 0; i < msg.length; i++) {
+            msg[i] = msg[i].substr(1, msg[i].length - 2);
+          }
+        }
+        //updateQuantity(msg);
+        setupMenu(msg);
       });
+
+      const checkQty = qty => {
+        if (qty == 0) {
+          //console.log("OUT OF STOCK");
+          return true;
+        }
+        // console.log("In STOCK");
+        return false;
+      };
 
       /* const updateUI = (msg) => {
         //empty UI
@@ -70,7 +91,8 @@
       let menuPrice = 0;
       let itemToSkip = 0;
       let quantityIndex = 0;
-      if (menuItems.length != 0) {
+
+      /* if (menuItems.length != 0) {
         //console.log(menuItems);
         menuItems.forEach((item, index) => {
           //console.log(item);
@@ -115,49 +137,91 @@
               span.innerText = menuItems[index + 1];
               itemToSkip = index + 1;
 
+              let outOfStock = checkQty(quantity);
+              if (outOfStock) {
+                input.className += " hidden";
+                p.className += " hidden";
+              }
+
               p.appendChild(span);
               //console.log(input);
               el.appendChild(input);
               el.appendChild(p);
             }
           }
-        });
-      }
+        }); 
+      }*/
 
-      const updateQuantity = msg => {
-        menuItems = "<%= menuItems%>".split(",");
-        //console.log(menuItems);
-        let temp = msg.split("+");
-        msg = JSON.parse(temp[0]);
-        let quantities = $(".quantity");
-        let quantArray = [];
-        for (let i = 0; i < msg.length; i++) {
-          //let quantity = menuItems[index];
-          switch (msg[i]) {
-            case "Appetizers":
-              break;
-            case "Lunch":
-              break;
-            case "Dinner":
-              break;
-            case "Sides":
-              break;
-            case "Drinks":
-              break;
-            default:
-              if (msg[i].includes("Quantity")) {
-                console.log("" + msg[i]);
-                quantArray.push(msg[i]);
+      const setupMenu = menuItems => {
+        console.log(menuItems);
+        $("[id$='list']").empty();
+        itemToSkip = 0;
+        if (menuItems.length != 0) {
+          //console.log(menuItems);
+          menuItems.forEach((item, index) => {
+            //console.log(item);
+            if (item == "Appetizers") {
+              //console.log("Apps");
+              itemPlacement = "apps-list";
+            } else if (item == "Dinner") {
+              //console.log("Dinner");
+              itemPlacement = "dinner-list";
+            } else if (item == "Lunch") {
+              //console.log("Lunch");
+              itemPlacement = "lunch-list";
+            } else if (item == "Sides") {
+              //console.log("Sides");
+              itemPlacement = "sides-list";
+            } else if (item == "Drinks") {
+              //console.log("Drinks");
+              itemPlacement = "drinks-list";
+            } else {
+              if (index == itemToSkip) {
+                return;
+              } else if (item.includes("Quantity")) {
+                return;
               } else {
-                break;
-              }
-          }
-        }
+                let el = document.getElementById(itemPlacement);
+                let p = document.createElement("p");
+                let span = document.createElement("span");
+                //let quantity = menuItems[index + 2].substring((menuItems[index + 2].length - 2), menuItems[index + 2].length);
+                let quantity = menuItems[index + 2].split(" ").pop();
+                let input = document.createElement("input");
+                let quantSpan = document.createElement("span");
+                input.id = item;
+                input.name = menuItems[index + 1];
+                input.className = "order-quantity";
+                input.type = "number";
+                input.min = 0;
+                input.max = quantity;
+                input.alt = itemPlacement;
 
-        for (let j = 0; j < quantities.length; j++) {
-          quantities[j].innerText = "(" + quantArray[j] + " available)";
+                //console.log(quantity);
+                span.className = "menu-price";
+                quantSpan.className = "quantity";
+                quantSpan.innerText = "(Quantity: " + quantity + " available)";
+                p.className = "menu-item";
+                p.innerText = item;
+                p.appendChild(quantSpan);
+                span.innerText = menuItems[index + 1];
+                itemToSkip = index + 1;
+
+                let outOfStock = checkQty(quantity);
+                if (outOfStock) {
+                  input.className += " hidden";
+                  p.className += " hidden";
+                }
+
+                p.appendChild(span);
+                //console.log(input);
+                el.appendChild(input);
+                el.appendChild(p);
+              }
+            }
+          });
         }
       };
+      setupMenu(menuItems);
     </script>
   </body>
 </html>
