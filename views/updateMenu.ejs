@@ -76,6 +76,12 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+      integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf"
+      crossorigin="anonymous"
+    />
     <script src="../js/main.js"></script>
     <script src="../js/ejs.min.js"></script>
     <script>
@@ -122,10 +128,12 @@
                 let quantInput = document.createElement("input");
 
                 let tr = document.createElement("tr");
+                tr.id = "" + item.replace(/\s+/g, "-").toLowerCase();
 
                 let itemtd = document.createElement("td");
                 let pricetd = document.createElement("td");
                 let quanttd = document.createElement("td");
+                let deleteTd = document.createElement("td");
 
                 itemInput.id = item;
                 itemInput.type = "text";
@@ -140,6 +148,10 @@
                 quantInput.type = "text";
                 quantInput.value = quantity;
 
+                deleteTd.innerHTML =
+                  '<i class="fas fa-minus-circle fa-lg deleteItem" id="' +
+                  item.replace(/\s/g, "") +
+                  '-delete-button"></i>';
                 itemToSkip = index + 1;
 
                 itemtd.appendChild(itemInput);
@@ -148,6 +160,7 @@
                 tr.appendChild(itemtd);
                 tr.appendChild(pricetd);
                 tr.appendChild(quanttd);
+                tr.appendChild(deleteTd);
                 el.appendChild(tr);
                 /* el.appendChild(br); */
               }
@@ -155,6 +168,14 @@
           });
         }
       }
+
+      $(".deleteItem").on("click", function(e) {
+        //console.log(e.target);
+        let child = e.target.parentNode.parentNode.id;
+        console.log(child);
+
+        $("#" + child).remove();
+      });
 
       $("input").keyup(function(e) {
         console.log($(this)[0].value.trim().length);

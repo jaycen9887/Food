@@ -153,6 +153,10 @@ h1 {
   font-size: 16px;
 }
 
+.deleteItem {
+  cursor: pointer;
+}
+
 #updateMenu #topic-event-creation #apps-list,
 #updateMenu #topic-event-creation #dinner-list,
 #updateMenu #topic-event-creation #lunch-list,
